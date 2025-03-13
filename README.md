@@ -33,8 +33,6 @@ sudo ./tui.sh
 
 - GRUB2
 - Kitty terminal (for image previews)
-- toilet (for ASCII art)
-- boxes (for decorative boxes)
 - sudo privileges
 
 ## 🤝 Acknowledgments

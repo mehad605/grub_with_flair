@@ -48,10 +48,6 @@ check_dependencies() {
         echo "${YELLOW}Warning: Kitty terminal not detected. Image previews disabled.${RESET}"
         return 1
     fi
-    if ! command -v toilet &> /dev/null || ! command -v boxes &> /dev/null; then
-        echo "${YELLOW}Warning: 'toilet' or 'boxes' not found. Some visual enhancements disabled.${RESET}"
-        return 1
-    fi
     return 0
 }
 
@@ -240,28 +236,34 @@ show_preview() {
     fi
 }
 
-# Fancy installation handler
+# Installation handler with simple ASCII art
 install_theme() {
     local theme="${THEMES[SELECTED_INDEX]}"
     clear
     
-    # ASCII art animation
-    echo -ne "${CYAN}"
-    toilet -f future "Installing..." | boxes -d cat -a c
+    # Simple ASCII banner
+    echo -ne "\n${CYAN}"
+    echo "╔════════════════════════╗"
+    echo "║      INSTALLING...     ║"
+    echo "╚════════════════════════╝"
     echo -ne "${RESET}"
     
-    echo -ne "\n${BOLD}${BLUE}»»» ${WHITE}Theme: ${MAGENTA}${theme}${RESET}\n"
+    echo -ne "\n${BOLD}${BLUE}»»» ${WHITE}Theme: ${MAGENTA}${theme}${RESET}\n\n"
     
     if ! sudo "$INSTALL_SCRIPT" <<<"$((SELECTED_INDEX + 1))"; then
         echo -ne "\n${RED}"
-        toilet -f pagga " FAILED! " | boxes -d tjc
+        echo "╔════════════════════════╗"
+        echo "║       FAILED! ❌       ║"
+        echo "╚════════════════════════╝"
         echo -ne "${RESET}"
         read -rp "Press any key to continue..."
         return 1
     fi
     
     echo -ne "\n${GREEN}"
-    toilet -f ivrit " SUCCESS! " | boxes -d spring
+    echo "╔════════════════════════╗"
+    echo "║      SUCCESS! ✓        ║"
+    echo "╚════════════════════════╝"
     echo -ne "${RESET}"
     read -rp "Press any key to continue..."
     return 0
