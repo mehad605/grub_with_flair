@@ -10,6 +10,13 @@ A modern, interactive TUI (Terminal User Interface) for installing and previewin
 - 🛡️ Automatic backup of GRUB configuration
 - 📦 Multiple theme support
 - 🎨 Beautiful TUI with colors and borders
+- 🔍 Automatic OS detection support (via os-prober)
+
+## 📋 Requirements
+
+- GRUB2
+- Kitty terminal (for image previews)
+- sudo privileges
 
 ## 🚀 Installation
 
@@ -29,11 +36,13 @@ chmod +x tui.sh install.sh
 sudo ./tui.sh
 ```
 
-## 📋 Requirements
+## 🛠️ Additional Features
 
-- GRUB2
-- Kitty terminal (for image previews)
-- sudo privileges
+### OS Detection
+The script automatically checks for and helps you install `os-prober` if it's not present on your system. This ensures that:
+- All operating systems on your computer are detected
+- GRUB shows boot options for all installed operating systems
+- The GRUB configuration is properly set up for OS detection
 
 ## 🤝 Acknowledgments
 

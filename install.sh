@@ -202,14 +202,69 @@ function update_grub() {
     fi
 }
 
+# Check and install os-prober if needed
+#----------------------------------
+function check_os_prober() {
+    if ! command -v os-prober &> /dev/null; then
+        echo_warning "os-prober is not installed on your system."
+        echo_info "os-prober is recommended for detecting other operating systems on your computer"
+        echo_info "This helps GRUB show boot options for all installed operating systems"
+        
+        echo_prompt "Would you like to install os-prober? (y/N): "
+        read -r response
+        
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            if command -v pacman &> /dev/null; then
+                echo_info "Installing os-prober using pacman..."
+                pacman -S --noconfirm os-prober
+            elif command -v apt-get &> /dev/null; then
+                echo_info "Installing os-prober using apt..."
+                apt-get update && apt-get install -y os-prober
+            elif command -v dnf &> /dev/null; then
+                echo_info "Installing os-prober using dnf..."
+                dnf install -y os-prober
+            else
+                echo_error "Could not determine package manager. Please install os-prober manually."
+                return 1
+            fi
+        else
+            echo_info "Skipping os-prober installation..."
+            return 0
+        fi
+    fi
+    return 0
+}
+
+# Configure os-prober in GRUB
+#--------------------------
+function configure_os_prober() {
+    local grub_config="${GRUB_CONFIG_PATH}"
+    local os_prober_line="GRUB_DISABLE_OS_PROBER=false"
+    
+    if grep -q "^#${os_prober_line}$" "$grub_config"; then
+        # Line exists but is commented out - uncomment it
+        echo_info "Uncommenting os-prober configuration..."
+        sed -i "s/^#${os_prober_line}$/${os_prober_line}/" "$grub_config"
+    elif ! grep -q "^${os_prober_line}$" "$grub_config"; then
+        # Line doesn't exist at all - add it
+        echo_info "Adding os-prober configuration..."
+        echo "${os_prober_line}" >> "$grub_config"
+    else
+        # Line already exists and is not commented - do nothing
+        echo_info "os-prober already configured correctly..."
+    fi
+}
+
 # Main script execution
 #--------------------
 function main() {
     splash 'Grub With Flair - Theme Installer'
 
     check_root
+    check_os_prober
+    configure_os_prober
     select_theme
-    backup_grub_config  # Added backup function call
+    backup_grub_config
     install_theme
     config_grub
     update_grub

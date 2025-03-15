@@ -26,6 +26,57 @@ ORANGE=$(tput setaf 208)
 RESET=$(tput sgr0)
 BOLD=$(tput bold)
 
+# Check and install os-prober if needed
+check_os_prober() {
+    if ! command -v os-prober &> /dev/null; then
+        clear
+        echo -ne "\n${YELLOW}⚠️  os-prober is not installed on your system.${RESET}\n\n"
+        echo -ne "${BLUE}os-prober is recommended for detecting other operating systems\n"
+        echo -ne "This helps GRUB show boot options for all installed operating systems${RESET}\n\n"
+        
+        echo -ne "${GREEN}Would you like to install os-prober? (y/N): ${RESET}"
+        read -r response
+        
+        if [[ "$response" =~ ^[Yy]$ ]]; then
+            if command -v pacman &> /dev/null; then
+                echo -ne "\n${CYAN}Installing os-prober using pacman...${RESET}\n"
+                pacman -S --noconfirm os-prober
+            elif command -v apt-get &> /dev/null; then
+                echo -ne "\n${CYAN}Installing os-prober using apt...${RESET}\n"
+                apt-get update && apt-get install -y os-prober
+            elif command -v dnf &> /dev/null; then
+                echo -ne "\n${CYAN}Installing os-prober using dnf...${RESET}\n"
+                dnf install -y os-prober
+            else
+                echo -ne "\n${RED}Could not determine package manager. Please install os-prober manually.${RESET}\n"
+                read -p "Press any key to continue..."
+                return 1
+            fi
+            echo -ne "\n${GREEN}os-prober installed successfully!${RESET}\n"
+            read -p "Press any key to continue..."
+        else
+            echo -ne "\n${YELLOW}Skipping os-prober installation...${RESET}\n"
+            read -p "Press any key to continue..."
+            return 0
+        fi
+    fi
+    return 0
+}
+
+# Configure os-prober in GRUB
+configure_os_prober() {
+    local grub_config="/etc/default/grub"
+    local os_prober_line="GRUB_DISABLE_OS_PROBER=false"
+    
+    if grep -q "^#${os_prober_line}$" "$grub_config"; then
+        # Line exists but is commented out - uncomment it
+        sed -i "s/^#${os_prober_line}$/${os_prober_line}/" "$grub_config"
+    elif ! grep -q "^${os_prober_line}$" "$grub_config"; then
+        # Line doesn't exist at all - add it
+        echo "${os_prober_line}" >> "$grub_config"
+    fi
+}
+
 # Gradient colors for title
 GRADIENT=($(seq 21 28 | xargs -I{} tput setaf {}))
 GRADIENT_LEN=${#GRADIENT[@]}
@@ -304,5 +355,8 @@ if [[ "$(id -u)" -ne 0 ]]; then
     echo "${RED}This script must be run as root${RESET}"
     exit 1
 fi
+
+check_os_prober
+configure_os_prober
 
 main
